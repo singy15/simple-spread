@@ -1,0 +1,56 @@
+/* @@@webenv.style(boxes) */
+
+.box {
+  box-sizing: border-box;
+  display: inline-flex;
+  vertical-align: top;
+  white-space: nowrap;
+  font-size: 1.0em;
+  padding: 0;
+  margin: 0;
+  line-height: 1.5em;
+  height: 1.5em;
+  overflow: hidden;
+}
+
+.box:has(.box) {
+  /*font-size: 0;*/
+  /*
+  width: auto;
+  */
+  height: auto;
+}
+
+.box-container {
+  box-sizing: border-box;
+  display: inline-block;
+  padding: 0;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.boxph {
+  visibility: hidden;
+}
+
+.ba { border: solid 1px; }
+.bl { border-left: solid 1px; }
+.br { border-right: solid 1px; }
+.bt { border-top: solid 1px; }
+.bb { border-bottom: solid 1px; }
+.blt { border-left: solid 1px; border-top: solid 1px; }
+.bha { border-color: transparent !important; }
+.bhl { border-color: transparent !important; }
+.bhr { border-color: transparent !important; }
+.bht { border-color: transparent !important; }
+.bhb { border-color: transparent !important; }
+.bnl { border-left: none; }
+.bnr { border-right: none; }
+.bnt { border-top: none; }
+.bnb { border-bottom: none; }
+
+.bl-first:first-child { border-left: solid 1px; }
+.bt-first:first-child { border-top: solid 1px; }
+.br-last:last-child { border-right: solid 1px; }
+.bb-last:last-child { border-bottom: solid 1px; }
+

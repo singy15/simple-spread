@@ -1,0 +1,87 @@
+/* @@@webenv.style(spreadstyle) */
+
+
+.cell {
+  position: relative;
+  border-top: solid 1px #FFF;
+  border-left: solid 1px #FFF;
+  border-bottom: solid 1px #888;
+  border-right: solid 1px #888;
+  /*padding: 2px;*/
+  background-color: #FFF;
+}
+
+.select::before {
+  content: "";
+  width: calc(100% - 1px);
+  height: calc(100% - 1px);
+  position: relative;
+  left: 0;
+  top: 0;
+  box-sizing: border-box;
+  border: solid 2px blue;
+  z-index: 9999;
+  user-select: none;
+  pointer-events: none;
+}
+
+.cell-text, textarea {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  /*line-height: 1.5;*/
+  font-weight: 400;
+
+  font-size: 13px;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  box-sizing: border-box;
+
+  display: block;
+  outline: none;
+  border: none;
+  cursor: inherit;
+  line-height: 1.0;
+  overflow: hidden;
+  white-space: pre;
+  /*text-wrap: nowrap;*/
+  /*padding: 3px;*/
+  height: 100%;
+  /*color: red;*/
+  padding: 0;
+}
+
+.cell-text {
+  user-select: none;
+  /*color:red;*/
+  pointer-events: none;
+}
+
+textarea {
+  caret-color: transparent;
+  /*opacity: 0.0;*/
+}
+
+textarea.edit {
+  caret-color: inherit;
+}
+
+.trivial-spread .header {
+  position: sticky;
+  top: 0px;
+  z-index: 9999;
+}
+
+.trivial-spread .row-header {
+  position: sticky;
+  left: 0px;
+  z-index: 9999;
+}
