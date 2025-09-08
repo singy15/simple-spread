@@ -43,8 +43,8 @@ const Spread = {
         },
       }),
     );
-    const columns = ref(getStorage("columns", 3));
-    const rows = ref(getStorage("rows", 3));
+    const columns = ref(getStorage("columns", 20));
+    const rows = ref(getStorage("rows", 50));
     const defaultWidth = 100;
     const defaultHeight = 20;
     const widths = reactive(
@@ -82,10 +82,23 @@ const Spread = {
 
     const cellStyle = (r, c) => {
       let style = {};
-      style.width = c > 0 ? `${widths[c]}px` : `${defaultWidth}px`;
-      style.height = r > 0 ? `${heights[r]}px` : `${defaultHeight}px`;
+      style.width = `${widths[c] ?? defaultWidth}px`;
+      style.height = `${heights[r] ?? defaultHeight}px`;
       if (r < 0 || c < 0) {
         style.backgroundColor = "#DDD";
+      }
+      if (c < 0) {
+        style.position = "sticky";
+        style.left = 0;
+        style.zIndex = 9000;
+      }
+      if (r < 0) {
+        style.position = "sticky";
+        style.top = 0;
+        style.zIndex = 9001;
+      }
+      if (r < 0 && c < 0) {
+        style.zIndex = 9003;
       }
       // if (r === selectRow.value && c === selectColumn.value) {
       //   style.border = "solid 2px #4b89ff";
@@ -352,14 +365,14 @@ const Spread = {
       </template>
       <br/>
       
-      <template v-for="(i,r) in columns">
+      <template v-for="(i,r) in rows">
         <!-- row header -->
         <div class="box cell" :style="cellStyle(r,-1)">
             {{ getv(r,-1) }} 
         </div>
 
         <!-- data cell -->
-        <template v-for="(j,c) in rows">
+        <template v-for="(j,c) in columns">
           <div class="box cell" :style="cellStyle(r,c)" :class="cellClass(r,c)"
             @click="cellClick(r,c)"
             @mouseover="cellOver(r,c)">
