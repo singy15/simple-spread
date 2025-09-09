@@ -61,6 +61,8 @@ const Spread = {
         2: defaultHeight,
       }),
     );
+    const fromRow = ref(-1);
+    const fromColumn = ref(-1);
     const selectRow = ref(0);
     const selectColumn = ref(0);
     const overRow = ref(0);
@@ -112,6 +114,12 @@ const Spread = {
       if (r === selectRow.value && c === selectColumn.value) {
         cls.push("select");
       }
+
+      let xrng = [selectRow.value, fromRow.value].sort();
+      let yrng = [selectColumn.value, fromColumn.value].sort();
+      if (r >= xrng[0] && r <= xrng[1] && c >= yrng[0] && c <= yrng[1]) {
+        cls.push("in-range");
+      }
       return cls;
     };
 
@@ -121,6 +129,8 @@ const Spread = {
       }
       selectRow.value = r;
       selectColumn.value = c;
+      fromRow.value = r;
+      fromColumn.value = c;
     };
 
     const cellOver = (r, c) => {
@@ -179,6 +189,11 @@ const Spread = {
         selectColumn.value = columns.value - 1;
       } else {
         selectColumn.value = selectColumn.value + dy;
+      }
+
+      if (!shift) {
+        fromRow.value = selectRow.value;
+        fromColumn.value = selectColumn.value;
       }
 
       await nextTick();
@@ -250,7 +265,7 @@ const Spread = {
           beginEdit(true);
           return;
         }
-        if(event.keyCode === 113) {
+        if (event.keyCode === 113) {
           beginEdit();
           return;
         }

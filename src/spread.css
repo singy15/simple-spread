@@ -9,6 +9,7 @@
   border-right: solid 1px #888;
   /*padding: 2px;*/
   background-color: #FFF;
+  cursor: cell;
 }
 
 .select::before {
@@ -48,7 +49,7 @@
   display: block;
   outline: none;
   border: none;
-  cursor: inherit;
+  cursor: cell;
   line-height: 1.0;
   overflow: hidden;
   white-space: pre;
@@ -68,10 +69,13 @@
 textarea {
   caret-color: transparent;
   /*opacity: 0.0;*/
+  resize: none;
+  cursor: cell;
 }
 
 textarea.edit {
   caret-color: inherit;
+  cursor: text;
 }
 
 .trivial-spread .header {
@@ -84,4 +88,8 @@ textarea.edit {
   position: sticky;
   left: 0px;
   z-index: 9999;
+}
+
+.in-range {
+  outline: solid 1px red;
 }
