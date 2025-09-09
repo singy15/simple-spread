@@ -243,11 +243,15 @@ const Spread = {
         return;
       } else {
         if (
-          [9, 13, 37, 38, 39, 40, 16, 17].indexOf(event.keyCode) === -1 &&
+          [9, 13, 37, 38, 39, 40, 16, 17, 113].indexOf(event.keyCode) === -1 &&
           event.ctrlKey === false &&
           event.altKey === false
         ) {
           beginEdit(true);
+          return;
+        }
+        if(event.keyCode === 113) {
+          beginEdit();
           return;
         }
         if (event.keyCode === 37) {
@@ -326,6 +330,60 @@ const Spread = {
       }
     };
 
+    const dragstart = reactive({
+      row: null,
+      col: null,
+      screenX: null,
+      screenY: null,
+    });
+
+    const dragend = reactive({
+      row: null,
+      col: null,
+      screenX: null,
+      screenY: null,
+    });
+
+    const eventDragstartVert = (irow, icol, event) => {
+      dragstart.row = irow;
+      dragstart.col = icol;
+      dragstart.screenX = event.screenX;
+      dragstart.screenY = event.screenY;
+    };
+
+    const eventDragVert = (irow, icol, event) => {};
+
+    const eventDragendVert = (irow, icol, event) => {
+      dragend.row = irow;
+      dragend.col = icol;
+      dragend.screenX = event.screenX;
+      dragend.screenY = event.screenY;
+      let diffX = dragend.screenX - dragstart.screenX;
+      //this.getDef(-1, icol).width = this.getDef(-1, icol).width + diffX;
+      if (!widths[icol]) widths[icol] = defaultWidth;
+      widths[icol] = widths[icol] + diffX;
+    };
+
+    const eventDragstartHori = (irow, icol, event) => {
+      dragstart.row = irow;
+      dragstart.col = icol;
+      dragstart.screenX = event.screenX;
+      dragstart.screenY = event.screenY;
+    };
+
+    const eventDragHori = (irow, icol, event) => {};
+
+    const eventDragendHori = (irow, icol, event) => {
+      dragend.row = irow;
+      dragend.col = icol;
+      dragend.screenX = event.screenX;
+      dragend.screenY = event.screenY;
+      let diffY = dragend.screenY - dragstart.screenY;
+      //this.getDef(irow, -1).height = this.getDef(irow, -1).height + diffY;
+      if (!heights[irow]) heights[irow] = defaultHeight;
+      heights[irow] = heights[irow] + diffY;
+    };
+
     return {
       data,
       columns,
@@ -347,6 +405,12 @@ const Spread = {
       cellMousedown,
       textareaClass,
       cellKeydown,
+      eventDragstartHori,
+      eventDragHori,
+      eventDragendHori,
+      eventDragstartVert,
+      eventDragVert,
+      eventDragendVert,
     };
   },
 
@@ -361,6 +425,15 @@ const Spread = {
       <template v-for="(j,c) in rows">
           <div class="box cell" :style="cellStyle(-1,c)">
             {{ getv(-1,c) }}
+            <span style="display:inline-block; position:absolute; 
+                right:0px; top:0px; width:5px; background-color:transparent;
+                cursor:col-resize;"
+                  :style="{height:cellStyle(-1,c).height}"
+                draggable="true"
+                @drag="eventDragVert(-1,c,$event)"
+                @dragstart="eventDragstartVert(-1,c,$event)"
+                @dragend="eventDragendVert(-1,c,$event)"
+                ></span>
           </div>
       </template>
       <br/>
@@ -369,6 +442,15 @@ const Spread = {
         <!-- row header -->
         <div class="box cell" :style="cellStyle(r,-1)">
             {{ getv(r,-1) }} 
+            <span style="display:inline-block; position:absolute;
+                left:0px; bottom:0px; height:5px; background-color:transparent;
+                cursor:row-resize;"
+                  :style="{width:cellStyle(r,-1).width}"
+                draggable="true"
+                @drag="eventDragHori(r,-1,$event)"
+                @dragstart="eventDragstartHori(r,-1,$event)"
+                @dragend="eventDragendHori(r,-1,$event)"
+                ></span>
         </div>
 
         <!-- data cell -->
