@@ -43,10 +43,10 @@ const Spread = {
         },
       }),
     );
-    const columns = ref(getStorage("columns", 20));
-    const rows = ref(getStorage("rows", 50));
+    const columns = ref(getStorage("columns", 8));
+    const rows = ref(getStorage("rows", 20));
     const defaultWidth = 100;
-    const defaultHeight = 20;
+    const defaultHeight = 22;
     const widths = reactive(
       getStorage("windths", {
         0: defaultWidth,
@@ -93,6 +93,7 @@ const Spread = {
         style.position = "sticky";
         style.left = 0;
         style.zIndex = 9000;
+        style.width = `${defaultWidth / 2}px`;
       }
       if (r < 0) {
         style.position = "sticky";
@@ -109,14 +110,22 @@ const Spread = {
       return style;
     };
 
+    const cmpnum = (a, b) => {
+      let ia = parseInt(a, 10);
+      let ib = parseInt(b, 10);
+      if (ia > ib) return 1;
+      if (ia < ib) return -1;
+      return 0;
+    };
+
     const cellClass = (r, c) => {
       let cls = ["box", "cell"];
       if (r === selectRow.value && c === selectColumn.value) {
         cls.push("select");
       }
 
-      let xrng = [selectRow.value, fromRow.value].sort();
-      let yrng = [selectColumn.value, fromColumn.value].sort();
+      let xrng = [selectRow.value, fromRow.value].sort(cmpnum);
+      let yrng = [selectColumn.value, fromColumn.value].sort(cmpnum);
       if (r >= xrng[0] && r <= xrng[1] && c >= yrng[0] && c <= yrng[1]) {
         cls.push("in-range");
       }
@@ -175,18 +184,20 @@ const Spread = {
       return cls;
     };
 
-    const moveCursor = async (dx, dy, shift) => {
+    const moveCursor = (dx, dy, shift) => {
       if (selectRow.value + dx < 0) {
         selectRow.value = 0;
       } else if (selectRow.value + dx >= rows.value) {
-        selectRow.value = rows.value - 1;
+        rows.value = selectRow.value + dx + 1;
+        selectRow.value = selectRow.value + dx;
       } else {
         selectRow.value = selectRow.value + dx;
       }
       if (selectColumn.value + dy < 0) {
         selectColumn.value = 0;
       } else if (selectColumn.value + dy >= columns.value) {
-        selectColumn.value = columns.value - 1;
+        columns.value = selectColumn.value + dy + 1;
+        selectColumn.value = selectColumn.value + dy;
       } else {
         selectColumn.value = selectColumn.value + dy;
       }
@@ -196,13 +207,33 @@ const Spread = {
         fromColumn.value = selectColumn.value;
       }
 
-      await nextTick();
-
-      let ta = document.querySelector(
-        `#ta-${selectRow.value}-${selectColumn.value}`,
-      );
-      ta.focus();
+      nextTick(() => {
+        let ta = document.querySelector(
+          `#ta-${selectRow.value}-${selectColumn.value}`,
+        );
+        ta.focus();
+      });
     };
+
+    const selectionData = (erase = false) => {
+      let cdata = [];
+      let rr = [selectRow.value, fromRow.value].sort(cmpnum);
+      let cr = [selectColumn.value, fromColumn.value].sort(cmpnum);
+      for (let r = rr[0]; r <= rr[1]; r++) {
+        let row = [];
+        for (let c = cr[0]; c <= cr[1]; c++) {
+          row.push(getv(r, c));
+          if (erase) {
+            setv(r, c, "");
+          }
+        }
+        cdata.push(row);
+      }
+      return cdata;
+    };
+
+    let clipboard = false;
+    let clipboardContents = null;
 
     const cellKeydown = (r, c, event) => {
       // // console.log(event);
@@ -258,12 +289,19 @@ const Spread = {
         return;
       } else {
         if (
-          [9, 13, 37, 38, 39, 40, 16, 17, 113].indexOf(event.keyCode) === -1 &&
+          [9, 13, 37, 38, 39, 40, 46, 16, 17, 113].indexOf(event.keyCode) ===
+            -1 &&
           event.ctrlKey === false &&
           event.altKey === false
         ) {
           beginEdit(true);
           return;
+        }
+        if (event.keyCode === 46) {
+          if (existCell(selectRow.value, selectColumn.value)) {
+            setv(selectRow.value, selectColumn.value, "");
+            return;
+          }
         }
         if (event.keyCode === 113) {
           beginEdit();
@@ -306,20 +344,28 @@ const Spread = {
         }
         // Copy : Ctrl + C
         if (event.keyCode === 67 && event.ctrlKey === true) {
-          // this.clipboard = true;
-          // this.clipboardContents = this.selectionData();
+          clipboardContents = selectionData();
+          event.preventDefault();
+          return;
         }
         // Cut : Ctrl + X
         if (event.keyCode === 88 && event.ctrlKey === true) {
-          // this.clipboard = true;
-          // this.clipboardContents = this.selectionData();
-          // this.selection().map((x) => {
-          //   this.setValue(x.row, x.col, null);
-          // });
-          // this.emitDatachanged();
+          clipboardContents = selectionData(true);
+          event.preventDefault();
+          return;
         }
         // Paste : Ctrl + V
-        if (event.keyCode === 86 && event.ctrlKey === true && this.clipboard) {
+        if (event.keyCode === 86 && event.ctrlKey === true) {
+          if (clipboardContents != null) {
+            clipboardContents.forEach((r, i) => {
+              r.forEach((c, j) => {
+                setv(selectRow.value + i, selectColumn.value + j, c);
+              });
+            });
+          }
+          event.preventDefault();
+          return;
+
           // let d = this.clipboardContents;
           // if (d.length === 1 && d[0].length === 1) {
           //   this.selection().map((x) => {
@@ -399,6 +445,20 @@ const Spread = {
       heights[irow] = heights[irow] + diffY;
     };
 
+    const toAlphabet = (_index) => {
+      let index = _index;
+      let alphabet = "";
+      if (index < 1) return alphabet;
+
+      while (index > 0) {
+        index--;
+        alphabet = String.fromCharCode((index % 26) + 65) + alphabet;
+        index = Math.floor(index / 26);
+      }
+
+      return alphabet;
+    };
+
     return {
       data,
       columns,
@@ -426,6 +486,7 @@ const Spread = {
       eventDragstartVert,
       eventDragVert,
       eventDragendVert,
+      toAlphabet,
     };
   },
 
@@ -437,9 +498,9 @@ const Spread = {
       </div>
 
       <!-- column header -->
-      <template v-for="(j,c) in rows">
+      <template v-for="(j,c) in columns">
           <div class="box cell" :style="cellStyle(-1,c)">
-            {{ getv(-1,c) }}
+            <span style="display:inline-block; width:100%; text-align:center; color:#555">{{ toAlphabet(c + 1) }}</span>
             <span style="display:inline-block; position:absolute; 
                 right:0px; top:0px; width:5px; background-color:transparent;
                 cursor:col-resize;"
@@ -453,10 +514,10 @@ const Spread = {
       </template>
       <br/>
       
-      <template v-for="(i,r) in rows">
+      <template v-for="(i,r) in rows" :key="'r'+r">
         <!-- row header -->
         <div class="box cell" :style="cellStyle(r,-1)">
-            {{ getv(r,-1) }} 
+            <span style="display:inline-block; width:100%; text-align:center; color:#555">{{ (r + 1).toString() }} </span>
             <span style="display:inline-block; position:absolute;
                 left:0px; bottom:0px; height:5px; background-color:transparent;
                 cursor:row-resize;"
@@ -469,7 +530,7 @@ const Spread = {
         </div>
 
         <!-- data cell -->
-        <template v-for="(j,c) in columns">
+        <template v-for="(j,c) in columns" :key="'c'+c">
           <div class="box cell" :style="cellStyle(r,c)" :class="cellClass(r,c)"
             @click="cellClick(r,c)"
             @mouseover="cellOver(r,c)">

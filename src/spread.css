@@ -2,14 +2,16 @@
 
 
 .cell {
+  box-sizing: border-box;
   position: relative;
   border-top: solid 1px #FFF;
   border-left: solid 1px #FFF;
-  border-bottom: solid 1px #888;
-  border-right: solid 1px #888;
+  border-bottom: solid 1px #CCC;
+  border-right: solid 1px #CCC;
   /*padding: 2px;*/
   background-color: #FFF;
   cursor: cell;
+  overflow: hidden;
 }
 
 .select::before {
@@ -20,13 +22,18 @@
   left: 0;
   top: 0;
   box-sizing: border-box;
-  border: solid 2px blue;
+  border: solid 2px #4b89ff;
   z-index: 9999;
   user-select: none;
   pointer-events: none;
 }
 
-.cell-text, textarea {
+.select::after {
+  opacity: 0.0 !important;
+}
+
+.cell-text,
+textarea {
   position: absolute;
   top: 2px;
   left: 2px;
@@ -46,18 +53,20 @@
 
   box-sizing: border-box;
 
-  display: block;
+  display: inline-block;
   outline: none;
   border: none;
   cursor: cell;
   line-height: 1.0;
   overflow: hidden;
   white-space: pre;
-  /*text-wrap: nowrap;*/
+  text-wrap: nowrap;
   /*padding: 3px;*/
   height: 100%;
   /*color: red;*/
   padding: 0;
+  margin: 0;
+  inset: 2px;
 }
 
 .cell-text {
@@ -67,6 +76,7 @@
 }
 
 textarea {
+  overflow: hidden;
   caret-color: transparent;
   /*opacity: 0.0;*/
   resize: none;
@@ -91,5 +101,24 @@ textarea.edit {
 }
 
 .in-range {
-  outline: solid 1px red;
+  /*outline: solid 1px red;*/
+}
+
+.in-range::after {
+  content: "";
+  width: calc(100% - 1px);
+  height: calc(100% - 1px);
+  position: absolute;
+  left: 0;
+  top: 0;
+  box-sizing: border-box;
+  background-color: #4b89ff;
+  /*z-index: 9999;*/
+  user-select: none;
+  pointer-events: none;
+  opacity: 0.1;
+}
+
+.center {
+  text-align: center;
 }
