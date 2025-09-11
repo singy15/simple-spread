@@ -132,14 +132,16 @@ const Spread = {
       return cls;
     };
 
-    const cellClick = (r, c) => {
+    const cellClick = (r, c, event) => {
       if (selectRow.value !== r || selectColumn.value !== c) {
         commitEdit();
       }
       selectRow.value = r;
       selectColumn.value = c;
-      fromRow.value = r;
-      fromColumn.value = c;
+      if (!event.shiftKey) {
+        fromRow.value = r;
+        fromColumn.value = c;
+      }
     };
 
     const cellOver = (r, c) => {
@@ -289,8 +291,9 @@ const Spread = {
         return;
       } else {
         if (
-          [9, 13, 37, 38, 39, 40, 46, 16, 17, 113].indexOf(event.keyCode) ===
-            -1 &&
+          [9, 13, 37, 38, 39, 40, 46, 16, 17, 113, 27].indexOf(
+            event.keyCode,
+          ) === -1 &&
           event.ctrlKey === false &&
           event.altKey === false
         ) {
@@ -357,11 +360,24 @@ const Spread = {
         // Paste : Ctrl + V
         if (event.keyCode === 86 && event.ctrlKey === true) {
           if (clipboardContents != null) {
-            clipboardContents.forEach((r, i) => {
-              r.forEach((c, j) => {
-                setv(selectRow.value + i, selectColumn.value + j, c);
+            if (
+              clipboardContents.length === 1 &&
+              clipboardContents[0].length === 1
+            ) {
+              let rr = [selectRow.value, fromRow.value].sort(cmpnum);
+              let cr = [selectColumn.value, fromColumn.value].sort(cmpnum);
+              for (let r = rr[0]; r <= rr[1]; r++) {
+                for (let c = cr[0]; c <= cr[1]; c++) {
+                  setv(r, c, clipboardContents[0][0]);
+                }
+              }
+            } else {
+              clipboardContents.forEach((r, i) => {
+                r.forEach((c, j) => {
+                  setv(selectRow.value + i, selectColumn.value + j, c);
+                });
               });
-            });
+            }
           }
           event.preventDefault();
           return;
@@ -532,7 +548,7 @@ const Spread = {
         <!-- data cell -->
         <template v-for="(j,c) in columns" :key="'c'+c">
           <div class="box cell" :style="cellStyle(r,c)" :class="cellClass(r,c)"
-            @click="cellClick(r,c)"
+            @click="cellClick(r,c,$event)"
             @mouseover="cellOver(r,c)">
             
               <!--:readonly="!editing"-->
