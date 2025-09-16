@@ -59,8 +59,8 @@ textarea {
   cursor: cell;
   line-height: 1.0;
   overflow: hidden;
-  white-space: pre;
-  text-wrap: nowrap;
+  /*hite-space: pre;*/
+  /*text-wrap: nowrap; */
   /*padding: 3px;*/
   height: 100%;
   /*color: red;*/
@@ -73,6 +73,10 @@ textarea {
   user-select: none;
   /*color:red;*/
   pointer-events: none;
+  height: fit-content !important;
+  display: inline-block;
+  white-space: pre !important;
+  text-wrap: auto;
 }
 
 textarea {

@@ -48,7 +48,7 @@ const Spread = {
     const defaultWidth = 100;
     const defaultHeight = 22;
     const widths = reactive(
-      getStorage("windths", {
+      getStorage("widths", {
         0: defaultWidth,
         1: defaultWidth,
         2: defaultWidth,
@@ -76,6 +76,16 @@ const Spread = {
     const setv = (r, c, v) => {
       if (!data[r]) data[r] = {};
       data[r][c] = { value: v };
+      setStorage("data", data);
+      nextTick(() => {
+        let span = document.querySelector(
+          "#span-" + r.toString() + "-" + c.toString(),
+        );
+        let optimalHeight = span.getBoundingClientRect().height + 2;
+        let currentHeight = heights[r] ?? defaultHeight;
+        heights[r] =
+          optimalHeight > currentHeight ? optimalHeight : currentHeight;
+      });
     };
 
     const existCell = (r, c) => {
@@ -191,6 +201,7 @@ const Spread = {
         selectRow.value = 0;
       } else if (selectRow.value + dx >= rows.value) {
         rows.value = selectRow.value + dx + 1;
+        setStorage("rows", rows.value);
         selectRow.value = selectRow.value + dx;
       } else {
         selectRow.value = selectRow.value + dx;
@@ -199,6 +210,7 @@ const Spread = {
         selectColumn.value = 0;
       } else if (selectColumn.value + dy >= columns.value) {
         columns.value = selectColumn.value + dy + 1;
+        setStorage("columns", columns.value);
         selectColumn.value = selectColumn.value + dy;
       } else {
         selectColumn.value = selectColumn.value + dy;
@@ -301,9 +313,14 @@ const Spread = {
           return;
         }
         if (event.keyCode === 46) {
-          if (existCell(selectRow.value, selectColumn.value)) {
-            setv(selectRow.value, selectColumn.value, "");
-            return;
+          let rr = [selectRow.value, fromRow.value].sort(cmpnum);
+          let cr = [selectColumn.value, fromColumn.value].sort(cmpnum);
+          for (let r = rr[0]; r <= rr[1]; r++) {
+            for (let c = cr[0]; c <= cr[1]; c++) {
+              if (existCell(r, c)) {
+                setv(r, c, "");
+              }
+            }
           }
         }
         if (event.keyCode === 113) {
@@ -439,6 +456,7 @@ const Spread = {
       //this.getDef(-1, icol).width = this.getDef(-1, icol).width + diffX;
       if (!widths[icol]) widths[icol] = defaultWidth;
       widths[icol] = widths[icol] + diffX;
+      setStorage("widths", widths);
     };
 
     const eventDragstartHori = (irow, icol, event) => {
@@ -459,6 +477,8 @@ const Spread = {
       //this.getDef(irow, -1).height = this.getDef(irow, -1).height + diffY;
       if (!heights[irow]) heights[irow] = defaultHeight;
       heights[irow] = heights[irow] + diffY;
+      if (heights[irow] < defaultHeight) heights[irow] = defaultHeight;
+      setStorage("heights", heights);
     };
 
     const toAlphabet = (_index) => {
@@ -561,7 +581,10 @@ const Spread = {
               @mousedown="cellMousedown(r,c,$event)"
               @keydown="cellKeydown(r,c,$event)"
               spellcheck="false"></textarea>  
-            <span class="cell-text" v-if="!editorAppear(r,c) && getv(r,c)">{{ getv(r,c) }}</span>
+            <span class="cell-text" 
+              :id="'span-' + r.toString() + '-' + c.toString()"
+              :style="{ opacity: (!editorAppear(r,c) && getv(r,c))? '1.0' : '0.0' }"
+              >{{ getv(r,c) }}</span>
           </div>
         </template>
 
