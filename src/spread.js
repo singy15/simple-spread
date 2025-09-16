@@ -365,6 +365,18 @@ const Spread = {
         // Copy : Ctrl + C
         if (event.keyCode === 67 && event.ctrlKey === true) {
           clipboardContents = selectionData();
+          let text = clipboardContents.map((r) => r.join("\t")).join("\r\n");
+          //navigator.clipboard.writeText(text).catch((err) => {
+          //  console.error("clipboard error", err);
+          //});
+          let active = document.activeElement;
+          const textarea = document.createElement("textarea");
+          textarea.value = text;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand("copy");
+          document.body.removeChild(textarea);
+          active.focus();
           event.preventDefault();
           return;
         }
@@ -376,27 +388,54 @@ const Spread = {
         }
         // Paste : Ctrl + V
         if (event.keyCode === 86 && event.ctrlKey === true) {
-          if (clipboardContents != null) {
-            if (
-              clipboardContents.length === 1 &&
-              clipboardContents[0].length === 1
-            ) {
-              let rr = [selectRow.value, fromRow.value].sort(cmpnum);
-              let cr = [selectColumn.value, fromColumn.value].sort(cmpnum);
-              for (let r = rr[0]; r <= rr[1]; r++) {
-                for (let c = cr[0]; c <= cr[1]; c++) {
-                  setv(r, c, clipboardContents[0][0]);
-                }
-              }
-            } else {
-              clipboardContents.forEach((r, i) => {
-                r.forEach((c, j) => {
-                  setv(selectRow.value + i, selectColumn.value + j, c);
-                });
-              });
-            }
-          }
-          event.preventDefault();
+          // if (clipboardContents != null) {
+          //   if (
+          //     clipboardContents.length === 1 &&
+          //     clipboardContents[0].length === 1
+          //   ) {
+          //     let rr = [selectRow.value, fromRow.value].sort(cmpnum);
+          //     let cr = [selectColumn.value, fromColumn.value].sort(cmpnum);
+          //     for (let r = rr[0]; r <= rr[1]; r++) {
+          //       for (let c = cr[0]; c <= cr[1]; c++) {
+          //         setv(r, c, clipboardContents[0][0]);
+          //       }
+          //     }
+          //   } else {
+          //     clipboardContents.forEach((r, i) => {
+          //       r.forEach((c, j) => {
+          //         setv(selectRow.value + i, selectColumn.value + j, c);
+          //       });
+          //     });
+          //   }
+          // }
+
+          //(async () => {
+          //  const text = await navigator.clipboard.readText();
+          //  clipboardContents = text.split("\r\n").map((r) => r.split("\t"));
+          //
+          //  if (clipboardContents != null) {
+          //    if (
+          //      clipboardContents.length === 1 &&
+          //      clipboardContents[0].length === 1
+          //    ) {
+          //      let rr = [selectRow.value, fromRow.value].sort(cmpnum);
+          //      let cr = [selectColumn.value, fromColumn.value].sort(cmpnum);
+          //      for (let r = rr[0]; r <= rr[1]; r++) {
+          //        for (let c = cr[0]; c <= cr[1]; c++) {
+          //          setv(r, c, clipboardContents[0][0]);
+          //        }
+          //      }
+          //    } else {
+          //      clipboardContents.forEach((r, i) => {
+          //        r.forEach((c, j) => {
+          //          setv(selectRow.value + i, selectColumn.value + j, c);
+          //        });
+          //      });
+          //    }
+          //  }
+          //})();
+          //
+          //event.preventDefault();
           return;
 
           // let d = this.clipboardContents;
@@ -495,6 +534,33 @@ const Spread = {
       return alphabet;
     };
 
+    const onPaste = (event) => {
+      const text = event.clipboardData.getData("text");
+      clipboardContents = text.replaceAll("\r\n", "\n").split("\n").map((r) => r.split("\t"));
+
+      if (clipboardContents != null) {
+        if (
+          clipboardContents.length === 1 &&
+          clipboardContents[0].length === 1
+        ) {
+          let rr = [selectRow.value, fromRow.value].sort(cmpnum);
+          let cr = [selectColumn.value, fromColumn.value].sort(cmpnum);
+          for (let r = rr[0]; r <= rr[1]; r++) {
+            for (let c = cr[0]; c <= cr[1]; c++) {
+              setv(r, c, clipboardContents[0][0]);
+            }
+          }
+        } else {
+          clipboardContents.forEach((r, i) => {
+            r.forEach((c, j) => {
+              setv(selectRow.value + i, selectColumn.value + j, c);
+            });
+          });
+        }
+      }
+      event.preventDefault();
+    };
+
     return {
       data,
       columns,
@@ -523,6 +589,7 @@ const Spread = {
       eventDragVert,
       eventDragendVert,
       toAlphabet,
+      onPaste,
     };
   },
 
@@ -580,6 +647,7 @@ const Spread = {
               :class="textareaClass(r,c)"
               @mousedown="cellMousedown(r,c,$event)"
               @keydown="cellKeydown(r,c,$event)"
+              @paste="onPaste($event)"
               spellcheck="false"></textarea>  
             <span class="cell-text" 
               :id="'span-' + r.toString() + '-' + c.toString()"
